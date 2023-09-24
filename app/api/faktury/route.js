@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { JSDOM } from "jsdom";
 
-export async function GET() {
-  //   const { url } = req.query;
-  const url = "2650454143.html";
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const url = searchParams.get("url");
+  //   const url = "2650454143.html";
 
   // Fetch the content
   const response = await fetch(`https://h3.owocni.pl/faktury/${url}`);
