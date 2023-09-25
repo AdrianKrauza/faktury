@@ -4,6 +4,7 @@ import { JSDOM } from "jsdom";
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const url = searchParams.get("url");
+
   //   const url = "2650454143.html";
 
   // Fetch the content
@@ -30,12 +31,72 @@ export async function GET(request) {
     });
 
     const parent = e.children[0];
+    const parent2 = document.querySelector("#pf1");
     boxes.forEach((box) => parent.removeChild(box));
-    boxes.forEach((box) => parent.appendChild(box));
+    boxes.forEach((box) => parent2.appendChild(box));
   });
-  document.querySelectorAll("img,style,script").forEach((e) => e.remove());
-  return new NextResponse(document.documentElement.outerHTML, {
-    status: 410,
-    headers: { "content-type": "text/html" },
+  let canRemove = true;
+
+  document.querySelectorAll("#pf1 > div").forEach((e, i) => {
+    if (e.textContent.includes("Telefon nr:")) {
+      canRemove = false;
+    }
+    if (e.textContent.includes("Aktualny rejestr Podmiotów świadc")) {
+      canRemove = true;
+    }
+
+    if (canRemove || window.getComputedStyle(e).fontSize === "") {
+      e.remove();
+      return;
+    }
+
+    [...e?.children].forEach((e) => {
+      if (e.nodeName.toLowerCase() === "span") {
+        const width = +window.getComputedStyle(e).width.replace("px", "");
+        if (width > 10) {
+          e.outerHTML = "|";
+        }
+      }
+    });
+    const fontSize = +window.getComputedStyle(e).fontSize.replace("px", "");
+
+    const arr = e.innerHTML?.split("|");
+    e.innerHTML = `{"${fontSize}|${arr[0]}":${JSON.stringify(arr)}}`;
   });
+  const elements = document.querySelectorAll("#pf1 > div");
+  let json = [];
+  let currentIndex = -1;
+
+  elements.forEach((element) => {
+    const content = JSON.parse(element.textContent);
+
+    if (element.textContent.includes("Telefon nr:")) {
+      currentIndex++;
+      json.push([content]);
+    } else if (currentIndex !== -1) {
+      json[currentIndex].push(content);
+    }
+  });
+  document.querySelectorAll("script,style").forEach((e) => e.remove());
+
+  json = json.map((entry) => {
+    let result = {};
+    let currentKey = null;
+
+    entry.forEach((item) => {
+      const [key, value] = Object.entries(item)[0];
+
+      if (key.includes("32")) {
+        currentKey = key.replace(/\d\d\|/, "");
+        result[currentKey] = {};
+      }
+      if (currentKey) {
+        result[currentKey][key.replace(/\d\d\|/, "")] = value;
+      }
+    });
+
+    return result;
+  });
+
+  return NextResponse.json({ phones: json, content: document.body.outerHTML });
 }
