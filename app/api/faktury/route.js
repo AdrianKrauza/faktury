@@ -36,7 +36,8 @@ export async function GET(request) {
     boxes.forEach((box) => parent2.appendChild(box));
   });
   let canRemove = true;
-
+  document.querySelectorAll("script,style").forEach((e) => e.remove());
+  const htmlCode = document.body.outerHTML;
   document.querySelectorAll("#pf1 > div").forEach((e, i) => {
     if (e.textContent.includes("Telefon nr:")) {
       canRemove = false;
@@ -78,7 +79,6 @@ export async function GET(request) {
       json[currentIndex].push(content);
     }
   });
-  document.querySelectorAll("script,style").forEach((e) => e.remove());
 
   json = json.map((entry) => {
     let result = {};
@@ -101,5 +101,5 @@ export async function GET(request) {
     return result;
   });
 
-  return NextResponse.json({ phones: json, content: document.body.outerHTML });
+  return NextResponse.json({ phones: json, content: htmlCode });
 }
