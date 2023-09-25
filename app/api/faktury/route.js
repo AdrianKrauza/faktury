@@ -53,7 +53,8 @@ export async function GET(request) {
     [...e?.children].forEach((e) => {
       if (e.nodeName.toLowerCase() === "span") {
         const width = +window.getComputedStyle(e).width.replace("px", "");
-        if (width > 10) {
+        // console.log(width, "|" + e.className + "|");
+        if (width > 10 || e.className === "_") {
           e.outerHTML = "|";
         }
       }
