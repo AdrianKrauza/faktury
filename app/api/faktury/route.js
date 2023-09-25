@@ -88,7 +88,9 @@ export async function GET(request) {
 
       if (key.includes("32")) {
         currentKey = key.replace(/\d\d\|/, "");
-        result[currentKey] = {};
+        if (!result[currentKey]) {
+          result[currentKey] = {};
+        }
       }
       if (currentKey) {
         result[currentKey][key.replace(/\d\d\|/, "")] = value;
